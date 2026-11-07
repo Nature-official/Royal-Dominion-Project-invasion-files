@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>R.D Government Files</title>
+
+    <style>
+        /* ------------------------------
+           GENERAL PAGE SETTINGS
+        ------------------------------ */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background-color: #000000;
+            color: #ffffff;
+            font-family: "Courier New", monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+
+        /* ------------------------------
+           TOP PROJECT NAVIGATION
+        ------------------------------ */
+
+        .project-bar {
+            width: 100%;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0;
+            border-bottom: 1px solid #444444;
+            padding: 8px 12px;
+        }
+
+        .project {
+            background: none;
+            border: none;
+            color: #555555;
+            font-size: 12px;
+            padding: 8px 12px;
+            cursor: not-allowed;
+            white-space: nowrap;
+        }
+
+        .project.selected {
+            color: #ffffff;
+            font-weight: bold;
+            cursor: default;
+        }
+
+
+        /* ------------------------------
+           MAIN TITLE
+        ------------------------------ */
+
+        .main-title {
+            text-align: center;
+            margin: 0;
+            padding: 28px 10px 24px;
+            font-size: clamp(24px, 4vw, 38px);
+            font-weight: normal;
+            letter-spacing: 3px;
+        }
+
+        .title-line {
+            width: 100%;
+            height: 1px;
+            background-color: #888888;
+        }
+
+
+        /* ------------------------------
+           DEPARTMENT NAVIGATION
+        ------------------------------ */
+
+        .department-bar {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 18px 12px;
+            border-bottom: 1px solid #333333;
+        }
+
+        .department {
+            background: none;
+            border: 1px solid transparent;
+            color: #777777;
+            padding: 10px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        .department:hover {
+            color: #cccccc;
+        }
+
+        .department.active {
+            color: #ffffff;
+            border-bottom: 1px solid #ffffff;
+        }
+
+
+        /* ------------------------------
+           DOCUMENT AREA
+        ------------------------------ */
+
+        .document-area {
+            display: none;
+            width: 100%;
+            padding: 20px 18px;
+        }
+
+        .document-area.visible {
+            display: block;
+        }
+
+        .document-title {
+            text-align: center;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: normal;
+            letter-spacing: 2px;
+            margin: 10px 0 30px;
+        }
+
+
+        /* ------------------------------
+           LEFT / CENTER / RIGHT LAYOUT
+        ------------------------------ */
+
+        .document-layout {
+            display: grid;
+
+            /*
+                Left collection | Empty center | Right collection
+            */
+
+            grid-template-columns: minmax(0, 1fr) 18% minmax(0, 1fr);
+
+            width: 100%;
+            min-height: 350px;
+            gap: 0;
+        }
+
+        .file-side {
+            display: grid;
+
+            /*
+                2 rows of 7 files.
+            */
+
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            grid-template-rows: repeat(2, minmax(90px, auto));
+
+            align-content: start;
+            gap: 14px 8px;
+
+            padding: 10px;
+        }
+
+        .empty-center {
+            /*
+                Intentionally empty.
+                No logo, text, or content is placed here.
+            */
+
+            min-width: 0;
+        }
+
+
+        /* ------------------------------
+           FILE CARDS
+        ------------------------------ */
+
+        .file-card {
+            min-width: 0;
+            min-height: 90px;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+
+            background: #080808;
+            border: 1px solid #252525;
+
+            color: #aaaaaa;
+            text-align: center;
+
+            padding: 8px 4px;
+
+            transition:
+                background-color 0.2s,
+                border-color 0.2s,
+                color 0.2s;
+        }
+
+        .file-card:hover {
+            background-color: #111111;
+            border-color: #777777;
+            color: #ffffff;
+        }
+
+        .file-icon {
+            font-size: 25px;
+            line-height: 1;
+        }
+
+        .file-name {
+            font-size: 10px;
+            letter-spacing: 1px;
+            overflow-wrap: anywhere;
+        }
+
+
+        /* ------------------------------
+           SIDE SCROLLBARS
+        ------------------------------ */
+
+        .file-side {
+            max-height: calc(100vh - 250px);
+            overflow-y: auto;
+        }
+
+        .file-side::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .file-side::-webkit-scrollbar-track {
+            background: #050505;
+        }
+
+        .file-side::-webkit-scrollbar-thumb {
+            background: #444444;
+        }
+
+        .file-side::-webkit-scrollbar-thumb:hover {
+            background: #777777;
+        }
+
+
+        /* ------------------------------
+           RESPONSIVE DESIGN
+        ------------------------------ */
+
+        @media (max-width: 1100px) {
+            .document-layout {
+                grid-template-columns: minmax(0, 1fr) 10% minmax(0, 1fr);
+            }
+
+            .file-side {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                grid-template-rows: auto;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .project-bar {
+                justify-content: flex-start;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+
+            .project {
+                flex-shrink: 0;
+            }
+
+            .department-bar {
+                justify-content: flex-start;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+
+            .department {
+                flex-shrink: 0;
+            }
+
+            .document-layout {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .empty-center {
+                display: none;
+            }
+
+            .file-side {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-template-rows: auto;
+                max-height: none;
+                overflow-y: visible;
+            }
+
+            .document-title {
+                font-size: 16px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- TOP PROJECT BAR -->
+
+    <nav class="project-bar">
+
+        <button class="project">Project Phoenix</button>
+        <button class="project">Project E-001</button>
+
+        <button class="project selected">
+            Project Invasion
+        </button>
+
+        <button class="project">Project Divine</button>
+        <button class="project">Project Catacombs</button>
+        <button class="project">Project Lightning</button>
+        <button class="project">Project Seed</button>
+        <button class="project">Project StarGod</button>
+        <button class="project">...</button>
+
+    </nav>
+
+
+    <!-- MAIN TITLE -->
+
+    <h1 class="main-title">
+        R.D Government Files
+    </h1>
+
+    <div class="title-line"></div>
+
+
+    <!-- DEPARTMENT BAR -->
+
+    <nav class="department-bar">
+
+        <button
+            class="department"
+            data-department="aeiflen"
+            onclick="selectDepartment('aeiflen', this)"
+        >
+            A'eiflen
+        </button>
+
+        <button
+            class="department"
+            data-department="zodium"
+            onclick="selectDepartment('zodium', this)"
+        >
+            1.77, Zodium
+        </button>
+
+        <button
+            class="department"
+            data-department="pythias"
+            onclick="selectDepartment('pythias', this)"
+        >
+            Pythias-25.45
+        </button>
+
+        <button
+            class="department"
+            data-department="dreamaker"
+            onclick="selectDepartment('dreamaker', this)"
+        >
+            Dreamaker-2.8
+        </button>
+
+        <button
+            class="department"
+            data-department="prioratum"
+            onclick="selectDepartment('prioratum', this)"
+        >
+            37.432-Prioratum-de
+        </button>
+
+    </nav>
+
+
+    <!-- DOCUMENT AREA
+         Hidden until a department is selected.
+    -->
+
+    <main id="documentArea" class="document-area">
+
+        <h2 id="documentTitle" class="document-title"></h2>
+
+        <div class="document-layout">
+
+            <!-- LEFT FILE COLLECTION -->
+
+            <div
+                id="leftFiles"
+                class="file-side"
+                aria-label="Left file collection"
+            ></div>
+
+
+            <!-- EMPTY CENTER -->
+
+            <div class="empty-center"></div>
+
+
+            <!-- RIGHT FILE COLLECTION -->
+
+            <div
+                id="rightFiles"
+                class="file-side"
+                aria-label="Right file collection"
+            ></div>
+
+        </div>
+
+    </main>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script>
+
+        /* ------------------------------
+           DEPARTMENT SELECTION
+        ------------------------------ */
+
+        function selectDepartment(department, button) {
+
+            const departmentButtons =
+                document.querySelectorAll(".department");
+
+            departmentButtons.forEach(function(item) {
+                item.classList.remove("active");
+            });
+
+            button.classList.add("active");
+
+            const documentArea =
+                document.getElementById("documentArea");
+
+            const documentTitle =
+                document.getElementById("documentTitle");
+
+            const leftFiles =
+                document.getElementById("leftFiles");
+
+            const rightFiles =
+                document.getElementById("rightFiles");
+
+
+            /*
+                Clear the previous department's files.
+            */
+
+            leftFiles.innerHTML = "";
+            rightFiles.innerHTML = "";
+
+
+            /*
+                Only A'eiflen currently has files.
+                The other departments remain empty.
+            */
+
+            if (department === "aeiflen") {
+
+                documentArea.classList.add("visible");
+
+                documentTitle.textContent =
+                    "Auresious boreias";
+
+                createFiles(leftFiles, 1, 14);
+                createFiles(rightFiles, 15, 28);
+
+            } else {
+
+                documentArea.classList.remove("visible");
+
+            }
+
+        }
+
+
+        /* ------------------------------
+           CREATE FILE CARDS
+        ------------------------------ */
+
+        function createFiles(container, startNumber, endNumber) {
+
+            for (
+                let i = startNumber;
+                i <= endNumber;
+                i++
+            ) {
+
+                const fileCard =
+                    document.createElement("div");
+
+                fileCard.className = "file-card";
+
+
+                const fileIcon =
+                    document.createElement("div");
+
+                fileIcon.className = "file-icon";
+
+                fileIcon.textContent = "▤";
+
+
+                const fileName =
+                    document.createElement("div");
+
+                fileName.className = "file-name";
+
+                fileName.textContent =
+                    "FILE " + String(i).padStart(2, "0");
+
+
+                fileCard.appendChild(fileIcon);
+                fileCard.appendChild(fileName);
+
+                container.appendChild(fileCard);
+
+            }
+
+        }
+
+    </script>
+
+</body>
+</html>
